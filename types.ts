@@ -1,10 +1,9 @@
-
 export type UserRole = 'admin' | 'comun';
 
 export interface User {
   id: string;
   email: string;
-  password?: string;
+  password?: string;  // Asegurar que password sea opcional pero disponible
   role: UserRole;
   createdAt: number;
 }
@@ -22,7 +21,7 @@ export interface Player {
   createdAt: number;
 }
 
-export type Team {
+export interface Team {
   id: string;
   userId: string;
   name: string;

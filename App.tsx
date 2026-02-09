@@ -24,7 +24,8 @@ const AuthContext = createContext<{
   user: User | null;
   setUser: (u: User | null) => void;
   loading: boolean;
-}>({ user: null, setUser: () => {}, loading: true });
+  logout: () => void;
+}>({ user: null, setUser: () => {}, loading: true, logout: () => {} });
 
 const DataContext = createContext<DataProvider>(localProvider);
 
@@ -78,6 +79,12 @@ export default function App() {
     setPageParams(params);
   };
 
+  const logout = () => {
+    localProvider.auth.logout();
+    setUser(null);
+    navigate('home');
+  };
+
   const ui = {
     confirm: (message: string, onConfirm: () => void) => setModal({ show: true, message, type: 'confirm', onConfirm }),
     alert: (message: string) => setModal({ show: true, message, type: 'alert' }),
@@ -105,7 +112,7 @@ export default function App() {
   );
 
   if (!user) return (
-    <AuthContext.Provider value={{ user, setUser, loading }}>
+    <AuthContext.Provider value={{ user, setUser, loading, logout }}>
         <UIContext.Provider value={ui}>
             <LoginPage />
         </UIContext.Provider>
@@ -113,7 +120,7 @@ export default function App() {
   );
 
   return (
-    <AuthContext.Provider value={{ user, setUser, loading }}>
+    <AuthContext.Provider value={{ user, setUser, loading, logout }}>
       <DataContext.Provider value={localProvider}>
         <UIContext.Provider value={ui}>
             <div className="h-full w-full flex flex-col bg-slate-950 text-slate-100 overflow-hidden">
@@ -126,19 +133,54 @@ export default function App() {
                   </div>
                 )}
                 
-                {currentPage !== 'home' && currentPage !== 'whiteboard' && (
-                    <header className="bg-slate-900/80 backdrop-blur-md flex-shrink-0 border-b border-slate-800 px-4 py-2 flex items-center h-12">
-                        <button onClick={() => navigate('home')} className="p-2 hover:bg-slate-800 rounded-xl transition-colors">
-                            <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-                            </svg>
-                        </button>
-                        <span className="ml-2 font-black uppercase text-[10px] tracking-widest text-slate-500">Volver</span>
-                    </header>
+                {/* Header con botón de logout */}
+                {(currentPage !== 'home' && currentPage !== 'whiteboard') ? (
+                  <header className="bg-slate-900/80 backdrop-blur-md flex-shrink-0 border-b border-slate-800 px-4 py-2 flex items-center justify-between h-12">
+                    <div className="flex items-center">
+                      <button onClick={() => navigate('home')} className="p-2 hover:bg-slate-800 rounded-xl transition-colors">
+                        <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                        </svg>
+                      </button>
+                      <span className="ml-2 font-black uppercase text-[10px] tracking-widest text-slate-500">Volver</span>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">
+                        {user.email}
+                      </span>
+                      <button 
+                        onClick={() => ui.confirm('¿Cerrar sesión?', logout)}
+                        className="p-2 text-slate-500 hover:text-rose-500 hover:bg-slate-800/50 rounded-xl transition-all"
+                        title="Cerrar sesión"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                        </svg>
+                      </button>
+                    </div>
+                  </header>
+                ) : (
+                  <header className="bg-slate-900/80 backdrop-blur-md flex-shrink-0 border-b border-slate-800 px-4 py-2 flex items-center justify-end h-12">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">
+                        {user.email}
+                      </span>
+                      <button 
+                        onClick={() => ui.confirm('¿Cerrar sesión?', logout)}
+                        className="p-2 text-slate-500 hover:text-rose-500 hover:bg-slate-800/50 rounded-xl transition-all"
+                        title="Cerrar sesión"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                        </svg>
+                      </button>
+                    </div>
+                  </header>
                 )}
                 
                 <main className="flex-1 overflow-hidden relative w-full h-full">
-                    {renderPage(currentPage, pageParams, navigate)}
+                    {renderPage(currentPage, pageParams, navigate, user.role)}
                 </main>
             
                 {modal?.show && (
@@ -169,7 +211,7 @@ export default function App() {
   );
 }
 
-function renderPage(currentPage: string, params: any, navigate: any) {
+function renderPage(currentPage: string, params: any, navigate: any, userRole: string) {
   switch (currentPage) {
     case 'home': return <Dashboard navigate={navigate} />;
     case 'teams': return <TeamsPage navigate={navigate} />;
@@ -178,7 +220,24 @@ function renderPage(currentPage: string, params: any, navigate: any) {
     case 'match-wizard': return <MatchWizard navigate={navigate} matchId={params?.matchId} />;
     case 'history': return <HistoryPage navigate={navigate} />;
     case 'whiteboard': return <WhiteboardPage navigate={navigate} params={params} />;
-    case 'admin-users': return <AdminUsersPage navigate={navigate} />;
+    case 'admin-users': 
+      // Solo admin puede acceder a admin-users
+      if (userRole === 'admin') {
+        return <AdminUsersPage navigate={navigate} />;
+      } else {
+        return <div className="p-6 h-full flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-rose-500 font-black text-lg">Acceso restringido</p>
+            <p className="text-slate-500 text-sm mt-2">Solo administradores pueden acceder a esta sección</p>
+            <button 
+              onClick={() => navigate('home')}
+              className="mt-4 bg-slate-800 text-white px-4 py-2 rounded-xl"
+            >
+              Volver al Dashboard
+            </button>
+          </div>
+        </div>;
+      }
     case 'export-import': return <ExportImportPage navigate={navigate} />;
     default: return <Dashboard navigate={navigate} />;
   }
