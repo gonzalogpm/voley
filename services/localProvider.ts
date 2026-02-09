@@ -1,4 +1,3 @@
-
 import { DataProvider, GenericRepository, User, Player, Team, Tournament, Match, WhiteboardState, AuthProvider } from '../types';
 import { db } from './db';
 
@@ -32,10 +31,17 @@ const localAuth: AuthProvider = {
     const users = await db.perform<User[]>('users', 'readonly', s => s.getAll());
     const user = users.find(u => u.email === email && u.password === password);
     if (!user) throw new Error('Credenciales inválidas');
-    localStorage.setItem('vc_session', JSON.stringify(user));
+    
+    // Guardar sesión (sin contraseña por seguridad)
+    const { password: _, ...userWithoutPassword } = user;
+    localStorage.setItem('vc_session', JSON.stringify(userWithoutPassword));
+    
     return user;
   },
-  logout: () => localStorage.removeItem('vc_session'),
+  logout: () => {
+    // Eliminar solo la sesión, NO los datos de "recordarme"
+    localStorage.removeItem('vc_session');
+  },
   createUser: async (userData) => {
     const newUser = { ...userData, id: generateId(), createdAt: Date.now() };
     await db.perform('users', 'readwrite', s => s.add(newUser));
