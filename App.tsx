@@ -82,6 +82,8 @@ export default function App() {
   const logout = () => {
     localProvider.auth.logout();
     setUser(null);
+    // Limpiar sesión completamente
+    localStorage.removeItem('vc_session');
     navigate('home');
   };
 
