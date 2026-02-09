@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Offline Mode</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        button { padding: 10px 20px; margin: 5px; }
+        .online { color: green; }
+        .offline { color: red; }
+    </style>
+</head>
+<body>
+    <h1>Test Modo Offline</h1>
+    
+    <div id="status" class="online">Estado: Online</div>
+    
+    <button onclick="goOffline()">Simular Offline</button>
+    <button onclick="goOnline()">Simular Online</button>
+    <button onclick="clearCache()">Limpiar Cache</button>
+    <button onclick="unregisterSW()">Desregistrar Service Worker</button>
+    
+    <div style="margin-top: 20px;">
+        <a href="/" target="_blank">Abrir App</a>
+    </div>
+    
+    <script>
+        function updateStatus() {
+            const status = document.getElementById('status');
+            if (navigator.onLine) {
+                status.textContent = 'Estado: Online';
+                status.className = 'online';
+            } else {
+                status.textContent = 'Estado: Offline';
+                status.className = 'offline';
+            }
+        }
+        
+        function goOffline() {
+            console.log('Simulating offline mode');
+            // Esto solo funciona en DevTools, pero podemos cambiar el estado visual
+            updateStatus();
+            alert('Ahora activa "Offline" en DevTools > Network');
+        }
+        
+        function goOnline() {
+            console.log('Simulating online mode');
+            updateStatus();
+        }
+        
+        function clearCache() {
+            if ('caches' in window) {
+                caches.keys().then(names => {
+                    names.forEach(name => {
+                        caches.delete(name);
+                        console.log('Cache deleted:', name);
+                    });
+                    alert('Cache limpiado. Recarga la app.');
+                });
+            }
+        }
+        
+        function unregisterSW() {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(registrations => {
+                    registrations.forEach(registration => {
+                        registration.unregister();
+                        console.log('Service Worker unregistered');
+                    });
+                    alert('Service Worker desregistrado. Recarga la app.');
+                });
+            }
+        }
+        
+        window.addEventListener('online', updateStatus);
+        window.addEventListener('offline', updateStatus);
+        updateStatus();
+    </script>
+</body>
+</html>

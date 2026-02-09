@@ -1,0 +1,7 @@
+{
+  "name": "Voley",
+  "description": "Aplicación offline-first para gestión de equipos de volleyball, partidos y pizarra táctica.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
