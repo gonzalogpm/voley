@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useAuth } from '../App';
 
@@ -18,6 +17,7 @@ export const Dashboard: React.FC<Props> = ({ navigate }) => {
     { id: 'players', label: 'Jugadoras', color: 'bg-emerald-600', icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' },
   ];
 
+  // Solo agregar Admin si el usuario es administrador
   if (user?.role === 'admin') {
     menuItems.push({ id: 'admin-users', label: 'Admin', color: 'bg-rose-600', icon: 'M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z' });
   }
@@ -28,6 +28,9 @@ export const Dashboard: React.FC<Props> = ({ navigate }) => {
     <div className="h-full w-full flex flex-col p-4 overflow-hidden">
       <header className="text-center mb-8 mt-4 flex-shrink-0">
         <h2 className="text-3xl font-black text-white tracking-tighter italic uppercase">Dashboard</h2>
+        <p className="text-slate-500 text-sm mt-1">
+          {user?.role === 'admin' ? 'Modo Administrador' : 'Modo Entrenador'}
+        </p>
       </header>
 
       <div className="flex-1 flex flex-col items-center justify-start py-2">
